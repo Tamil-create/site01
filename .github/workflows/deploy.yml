@@ -13,24 +13,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Debug bucket (important)
+      - name: Validate S3 bucket secret
         run: |
           if [ -z "${{ secrets.S3_BUCKET }}" ]; then
-            echo "❌ S3_BUCKET is empty"
+            echo "❌ ERROR: S3_BUCKET secret is missing"
             exit 1
           else
-            echo "✅ Bucket found"
+            echo "✅ Using bucket: ${{ secrets.S3_BUCKET }}"
           fi
 
-      - name: Upload to S3
+      - name: Deploy to S3
         run: |
           aws s3 sync . s3://${{ secrets.S3_BUCKET }} --delete \
             --exclude ".git/*" \
-            --exclude ".github/*"
+            --exclude ".github/*" \
+            --exclude "node_modules/*"
